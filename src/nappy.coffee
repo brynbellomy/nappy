@@ -7,12 +7,12 @@
 # - make it possible to query other types of things (like 'readable stream')
 
 
-request     = require 'request'
-fs          = require 'fs'
-es          = require 'event-stream'
-JSONStream  = require 'JSONStream'
-$f          = require 'filed'
-$           = require 'jquery'
+JSONStream = require 'JSONStream'
+request    = require 'request'
+fs         = require 'fs'
+es         = require 'event-stream'
+$f         = require 'filed'
+$          = require 'jquery'
 require "colors"
 
 argv = require('optimist')
@@ -60,12 +60,12 @@ coffee_maker = es.through (args) ->
   {tagType, node, jsonObject, text} = args
 
   if tagType?.toLowerCase?() is 'code' and argv.coffee is yes
-    js2coffee = require "js2coffee"
+    js2coffee = require 'js2coffee'
     try
       text = js2coffee.build text
     catch exception
-      console.log "exception: ", exception
-      console.log "failtext:", text
+      console.log 'exception: ', exception
+      console.log 'failtext:', text
 
   @emit 'data', { tagType: tagType, jsonObject: jsonObject, node: node, text: text }
 

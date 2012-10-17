@@ -3,13 +3,13 @@
 (function() {
   var $, $f, JSONStream, argv, cache_file, coffee_maker, colorizer, docs_url, es, filter, fs, jquery_tree, obtain_data, parser, request, the_fn, the_module, _ref;
 
+  JSONStream = require('JSONStream');
+
   request = require('request');
 
   fs = require('fs');
 
   es = require('event-stream');
-
-  JSONStream = require('JSONStream');
 
   $f = require('filed');
 
@@ -80,12 +80,12 @@
     var js2coffee, jsonObject, node, tagType, text;
     tagType = args.tagType, node = args.node, jsonObject = args.jsonObject, text = args.text;
     if ((tagType != null ? typeof tagType.toLowerCase === "function" ? tagType.toLowerCase() : void 0 : void 0) === 'code' && argv.coffee === true) {
-      js2coffee = require("js2coffee");
+      js2coffee = require('js2coffee');
       try {
         text = js2coffee.build(text);
       } catch (exception) {
-        console.log("exception: ", exception);
-        console.log("failtext:", text);
+        console.log('exception: ', exception);
+        console.log('failtext:', text);
       }
     }
     return this.emit('data', {

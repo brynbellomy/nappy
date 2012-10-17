@@ -9,6 +9,9 @@
   "repository": "",
   "author": "bryn austin bellomy",
   "license": "WTFPL",
+  "bin": {
+    "nappy": "./bin/nappy"
+  },
   "dependencies": {
     "JQ": "0.0.x",
     "JSONStream": "0.4.x",
