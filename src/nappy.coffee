@@ -16,8 +16,8 @@ $           = require 'jquery'
 require "colors"
 
 argv = require('optimist')
-         .alias('c', 'coffee').describe('c', 'Output code blocks as coffeescript.').default('c', false)
-         .alias('w', 'wipe-cache').describe('w', 'Wipe the locally-cached version of the API docs and re-download.').default('w', false)
+         .alias('c', 'coffee').describe('c', 'Output code blocks as coffeescript.').default('c', false).boolean('c')
+         .alias('w', 'wipe-cache').describe('w', 'Wipe the locally-cached version of the API docs and re-download.').default('w', false).boolean('w')
          .demand(1).argv
 
 [ the_module, the_fn ] = argv._[0].toString().split '.'
