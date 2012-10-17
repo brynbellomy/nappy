@@ -1,0 +1,23 @@
+{
+  "name": "node-api-lookup",
+  "version": "0.0.1",
+  "description": "ERROR: No README.md file found!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "",
+  "author": "bryn austin bellomy",
+  "license": "WTFPL",
+  "dependencies": {
+    "JQ": "0.0.x",
+    "JSONStream": "0.4.x",
+    "event-stream": "3.0.x",
+    "request": "2.11.x",
+    "optimist": "0.3.x",
+    "colors": "0.6.x",
+    "jquery": "~1.7.3",
+    "js2coffee": "~0.2.0",
+    "filed": "0.0.7"
+  }
+}
