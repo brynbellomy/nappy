@@ -1,0 +1,174 @@
+<!DOCTYPE html><html><head><title>README.md</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="doc-style.css"><script src="doc-filelist.js"></script><script>var relativeDir = '', thisFile = '/Users/bryn/.otis/templates/tmpl.jade', defaultSidebar = true;</script><script src="doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"><div class="heading h1"><a href="#---nappy">// nappy</a></div><div class="heading h1"><a href="#basic-usage">basic usage</a></div><div class="heading h1"><a href="#command-line-options">command-line options</a></div><div class="heading h1"><a href="#commands">commands</a></div><div class="heading h3"><a href="#function--aliases--f--func--m--method-">function (aliases: f, func, m, method)</a></div><div class="heading h3"><a href="#class--aliases--c-">class (aliases: c)</a></div><div class="heading h3"><a href="#ls--aliases--l--list-">ls (aliases: l, list)</a></div><div class="heading h1"><a href="#how-to-specify-the--thing-to-lookup-">how to specify the 'thing to lookup'</a></div><div class="heading h1"><a href="#nappy-caches-the-api-docs-for-offline-viewing">nappy caches the api docs for offline viewing</a></div><div class="heading h1"><a href="#-todo">@todo</a></div><div class="heading h1"><a href="#authors---contributors">authors / contributors</a></div><div class="heading h1"><a href="#license--wtfpl-v2-">license (wtfpl v2)</a></div></div></div><div id="sidebar-toggle"></div><div id="container"><div class="docs markdown">
+<div class="pilwrap" id="---nappy">
+  <h1>
+    <a href="#---nappy" class="pilcrow">&#182;</a>
+    // nappy
+  </h1>
+</div>
+
+
+<p><code>nappy</code> queries the latest <strong>node.js api</strong> docs from the <strong>command line</strong>.</p>
+
+
+<div class="pilwrap" id="basic-usage">
+  <h1>
+    <a href="#basic-usage" class="pilcrow">&#182;</a>
+    basic usage
+  </h1>
+</div>
+
+
+
+<div class="highlight"><pre><code><span class="nv">$ </span>nappy fs.readFile
+</code></pre></div>
+
+
+
+
+<div class="pilwrap" id="command-line-options">
+  <h1>
+    <a href="#command-line-options" class="pilcrow">&#182;</a>
+    command-line options
+  </h1>
+</div>
+
+
+<div class='highlight'><pre><code language=''>Usage:
+   $ nappy [options] &lt;command&gt; &lt;thing to lookup&gt;
+
+Options:
+  -c, --coffee      Output code blocks as coffeescript.                               [boolean]  [default: false]
+  -w, --wipe-cache  Wipe the locally-cached version of the API docs and re-download.  [boolean]  [default: false]
+  -d, --debug       Display debug output.                                             [boolean]  [default: false]
+</code></pre></div>
+
+
+<div class="pilwrap" id="commands">
+  <h1>
+    <a href="#commands" class="pilcrow">&#182;</a>
+    commands
+  </h1>
+</div>
+
+
+
+<div class="pilwrap" id="function--aliases--f--func--m--method-">
+  <h3>
+    <a href="#function--aliases--f--func--m--method-" class="pilcrow">&#182;</a>
+    function (aliases: <code>f</code>, <code>func</code>, <code>m</code>, <code>method</code>)
+  </h3>
+</div>
+
+
+<p>displays documentation for a single function.</p>
+
+<p>ex: <code>$ nappy f fs.readFile</code></p>
+
+<p><img src="http://f.cl.ly/items/2f3q1y3K34273r1h242D/nappy-screenshot-func.png" /></p>
+
+
+<div class="pilwrap" id="class--aliases--c-">
+  <h3>
+    <a href="#class--aliases--c-" class="pilcrow">&#182;</a>
+    class (aliases: <code>c</code>)
+  </h3>
+</div>
+
+
+<p>displays documentation for a class.</p>
+
+<p>ex: <code>$ nappy c child_process.ChildProcess</code></p>
+
+<p><img src="http://f.cl.ly/items/1L2D0c0n1k0Z3y3U252T/nappy-screenshot-class.png" /></p>
+
+
+<div class="pilwrap" id="ls--aliases--l--list-">
+  <h3>
+    <a href="#ls--aliases--l--list-" class="pilcrow">&#182;</a>
+    ls (aliases: <code>l</code>, <code>list</code>)
+  </h3>
+</div>
+
+
+<p>lists the functions and classes exported by a module.</p>
+
+<p>ex: <code>$ nappy ls util</code></p>
+
+<p><img src="http://f.cl.ly/items/0c3O0Z2L1O1M372g3P1X/nappy-screenshot-ls.png" /></p>
+
+
+<div class="pilwrap" id="how-to-specify-the--thing-to-lookup-">
+  <h1>
+    <a href="#how-to-specify-the--thing-to-lookup-" class="pilcrow">&#182;</a>
+    how to specify the 'thing to lookup'
+  </h1>
+</div>
+
+
+<p>for the <code>ls</code> command, simply specify the module name you'd like to see the contents of.</p>
+
+<p>for <code>function</code> and <code>class</code>, you must specify <code>&lt;module&gt;.&lt;thing&gt;</code> (i.e. <code>fs.readFile</code>, etc.)</p>
+
+
+<div class="pilwrap" id="nappy-caches-the-api-docs-for-offline-viewing">
+  <h1>
+    <a href="#nappy-caches-the-api-docs-for-offline-viewing" class="pilcrow">&#182;</a>
+    nappy caches the api docs for offline viewing
+  </h1>
+</div>
+
+
+<p>good for coding on airplanes if you don't have $5 to blow on airtran wi-fi.  if you need to clear the cache, just pass the <code>-w</code> flag.  but don't do it while you're offline or you'll bust the cache and refill it with <em><strong>a vast nothingness</strong></em>.</p>
+
+
+<div class="highlight"><pre><code>nappy -w util.inspect
+</code></pre></div>
+
+
+
+
+<div class="pilwrap" id="-todo">
+  <h1>
+    <a href="#-todo" class="pilcrow">&#182;</a>
+    @todo
+  </h1>
+</div>
+
+
+<ul>
+<li>customizable color schemes</li>
+</ul>
+
+
+<div class="pilwrap" id="authors---contributors">
+  <h1>
+    <a href="#authors---contributors" class="pilcrow">&#182;</a>
+    authors / contributors
+  </h1>
+</div>
+
+
+<p>bryn austin bellomy &lt; <a href="&#x6D;a&#105;&#x6C;&#116;&#111;:&#x62;&#114;&#x79;n&#46;b&#x65;&#x6C;&#x6C;&#x6F;&#109;&#x79;&#x40;&#103;&#x6D;&#x61;&#x69;&#x6C;&#x2E;&#x63;&#x6F;m">&#x62;&#114;&#x79;n&#46;b&#x65;&#x6C;&#x6C;&#x6F;&#109;&#x79;&#x40;&#103;&#x6D;&#x61;&#x69;&#x6C;&#x2E;&#x63;&#x6F;m</a> ></p>
+
+
+<div class="pilwrap" id="license--wtfpl-v2-">
+  <h1>
+    <a href="#license--wtfpl-v2-" class="pilcrow">&#182;</a>
+    license (wtfpl v2)
+  </h1>
+</div>
+
+
+<pre><code language=''>DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+Version 2, December 2004
+
+Copyright (C) 2004 Sam Hocevar &lt;<a href='mailto:sam@hocevar.net'>sam@hocevar.net</a>&gt;
+
+Everyone is permitted to copy and distribute verbatim or modified 
+copies of this license document, and changing it is allowed as long 
+as the name is changed. 
+
+DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+0. You just DO WHAT THE FUCK YOU WANT TO. 
+</code></pre></div></div></body></html>

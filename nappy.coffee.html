@@ -1,0 +1,251 @@
+<!DOCTYPE html><html><head><title>nappy.coffee</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="doc-style.css"><script src="doc-filelist.js"></script><script>var relativeDir = '', thisFile = '/Users/bryn/.otis/templates/tmpl.jade', defaultSidebar = true;</script><script src="doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"><div class="heading h1"><a href="#nappy">nappy</a></div></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs">
+<div class="pilwrap" id="nappy">
+  <h1>
+    <a href="#nappy" class="pilcrow">&#182;</a>
+    nappy
+  </h1>
+</div>
+
+
+<p>node.js api querying from the terminal <br />
+bryn austin bellomy (<a href='mailto:bryn.bellomy@gmail.com'>bryn.bellomy@gmail.com</a>)</p></td><td class="code highlight"><div class="highlight"><pre><span class="nv">JSONStream = </span><span class="nx">require</span> <span class="s">&#39;JSONStream&#39;</span>
+<span class="nv">request    = </span><span class="nx">require</span> <span class="s">&#39;request&#39;</span>
+<span class="nv">mkdirp     = </span><span class="nx">require</span> <span class="s">&#39;mkdirp&#39;</span>
+<span class="nv">path       = </span><span class="nx">require</span> <span class="s">&#39;path&#39;</span>
+<span class="nv">clc        = </span><span class="nx">require</span> <span class="s">&#39;cli-color&#39;</span>
+<span class="nv">fs         = </span><span class="nx">require</span> <span class="s">&#39;fs&#39;</span>
+<span class="nv">es         = </span><span class="nx">require</span> <span class="s">&#39;event-stream&#39;</span>
+<span class="nv">$f         = </span><span class="nx">require</span> <span class="s">&#39;filed&#39;</span>
+<span class="nv">$          = </span><span class="nx">require</span> <span class="s">&#39;jquery&#39;</span>
+
+<span class="nv">colors =</span>
+  <span class="nv">header: </span>    <span class="nx">clc</span><span class="p">.</span><span class="nx">white</span><span class="p">.</span><span class="nx">bold</span><span class="p">.</span><span class="nx">underline</span>
+  <span class="nv">footer: </span>    <span class="nx">clc</span><span class="p">.</span><span class="nx">white</span><span class="p">.</span><span class="nx">bold</span>
+  <span class="nv">text: </span>      <span class="nx">clc</span><span class="p">.</span><span class="nx">xterm</span><span class="p">(</span><span class="mi">75</span><span class="p">)</span>
+  <span class="nv">code: </span>      <span class="nx">clc</span><span class="p">.</span><span class="nx">xterm</span><span class="p">(</span><span class="mi">195</span><span class="p">).</span><span class="nx">bold</span>
+  <span class="nv">code_block: </span><span class="nx">clc</span><span class="p">.</span><span class="nx">xterm</span><span class="p">(</span><span class="mi">255</span><span class="p">).</span><span class="nx">bgXterm</span><span class="p">(</span><span class="mi">235</span><span class="p">)</span> <span class="c1">#.bold</span>
+  <span class="nv">err: </span>       <span class="nx">clc</span><span class="p">.</span><span class="nx">red</span>
+
+
+<span class="nv">argv = </span><span class="nx">require</span><span class="p">(</span><span class="s">&#39;optimist&#39;</span><span class="p">)</span>
+         <span class="p">.</span><span class="nx">alias</span><span class="p">(</span><span class="s">&#39;c&#39;</span><span class="p">,</span> <span class="s">&#39;coffee&#39;</span><span class="p">).</span><span class="nx">describe</span><span class="p">(</span><span class="s">&#39;c&#39;</span><span class="p">,</span> <span class="s">&#39;Output code blocks as coffeescript.&#39;</span><span class="p">).</span><span class="nx">default</span><span class="p">(</span><span class="s">&#39;c&#39;</span><span class="p">,</span> <span class="kc">false</span><span class="p">).</span><span class="nx">boolean</span><span class="p">(</span><span class="s">&#39;c&#39;</span><span class="p">)</span>
+         <span class="p">.</span><span class="nx">alias</span><span class="p">(</span><span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="s">&#39;wipe-cache&#39;</span><span class="p">).</span><span class="nx">describe</span><span class="p">(</span><span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="s">&#39;Wipe the locally-cached version of the API docs and re-download.&#39;</span><span class="p">).</span><span class="nx">default</span><span class="p">(</span><span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="kc">false</span><span class="p">).</span><span class="nx">boolean</span><span class="p">(</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+         <span class="p">.</span><span class="nx">alias</span><span class="p">(</span><span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="s">&#39;debug&#39;</span><span class="p">).</span><span class="nx">describe</span><span class="p">(</span><span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="s">&#39;Display debug output.&#39;</span><span class="p">).</span><span class="nx">default</span><span class="p">(</span><span class="s">&#39;d&#39;</span><span class="p">,</span> <span class="kc">false</span><span class="p">).</span><span class="nx">boolean</span><span class="p">(</span><span class="s">&#39;d&#39;</span><span class="p">)</span>
+         <span class="p">.</span><span class="nx">usage</span><span class="p">(</span><span class="s">&#39;Usage:\n   $ nappy [options] &lt;command&gt; &lt;thing to lookup&gt;\n\nExample:\n   $ nappy -cw func fs.readFile\n\nCommands:\n   function (aliases: f, func, m, method)\n   class    (aliases: c)\n   ls       (aliases: l, list)&#39;</span><span class="p">)</span>
+         <span class="p">.</span><span class="nx">demand</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="nx">argv</span></pre></div></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2">&#182;</a>
+</div>
+<p>usage examples:</p>
+
+<ul>
+<li>nappy f  fs.readFile</li>
+<li>nappy c  child_process.ChildProcess</li>
+<li>nappy ls stream</li>
+<li>nappy ls stream.classes</li>
+</ul></td><td class="code highlight"><div class="highlight"><pre><span class="nv">cmd = </span><span class="nx">argv</span><span class="p">.</span><span class="nx">_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="p">[</span><span class="nx">the_module</span><span class="p">,</span> <span class="nx">the_thing_in_the_module</span><span class="p">]</span> <span class="o">=</span> <span class="nx">argv</span><span class="p">.</span><span class="nx">_</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">toString</span><span class="p">().</span><span class="nx">split</span> <span class="s">&#39;.&#39;</span>
+
+<span class="k">switch</span> <span class="nx">cmd</span>
+  <span class="k">when</span> <span class="s">&#39;f&#39;</span><span class="p">,</span> <span class="s">&#39;func&#39;</span><span class="p">,</span> <span class="s">&#39;function&#39;</span><span class="p">,</span> <span class="s">&#39;m&#39;</span><span class="p">,</span> <span class="s">&#39;method&#39;</span>
+    <span class="nv">cmd = </span><span class="s">&#39;function&#39;</span>
+    <span class="nv">parser = </span><span class="nx">JSONStream</span><span class="p">.</span><span class="nx">parse</span> <span class="p">[</span><span class="s">&#39;modules&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="s">&#39;methods&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">]</span>
+
+  <span class="k">when</span> <span class="s">&#39;c&#39;</span><span class="p">,</span> <span class="s">&#39;class&#39;</span>
+    <span class="nv">cmd = </span><span class="s">&#39;class&#39;</span>
+    <span class="nv">parser = </span><span class="nx">JSONStream</span><span class="p">.</span><span class="nx">parse</span> <span class="p">[</span><span class="s">&#39;modules&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="s">&#39;classes&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">]</span>
+
+  <span class="k">when</span> <span class="s">&#39;l&#39;</span><span class="p">,</span> <span class="s">&#39;ls&#39;</span><span class="p">,</span> <span class="s">&#39;list&#39;</span>
+    <span class="nv">cmd = </span><span class="s">&#39;list&#39;</span>
+
+    <span class="k">switch</span> <span class="nx">the_thing_in_the_module</span>
+      <span class="k">when</span> <span class="s">&#39;c&#39;</span><span class="p">,</span> <span class="s">&#39;class&#39;</span><span class="p">,</span> <span class="s">&#39;classes&#39;</span>
+        <span class="nv">parser = </span><span class="nx">JSONStream</span><span class="p">.</span><span class="nx">parse</span> <span class="p">[</span><span class="s">&#39;modules&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="s">&#39;classes&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">]</span>
+      <span class="k">when</span> <span class="s">&#39;f&#39;</span><span class="p">,</span> <span class="s">&#39;func&#39;</span><span class="p">,</span> <span class="s">&#39;funcs&#39;</span><span class="p">,</span> <span class="s">&#39;function&#39;</span><span class="p">,</span> <span class="s">&#39;functions&#39;</span><span class="p">,</span> <span class="s">&#39;m&#39;</span><span class="p">,</span> <span class="s">&#39;method&#39;</span><span class="p">,</span> <span class="s">&#39;methods&#39;</span>
+        <span class="nv">parser = </span><span class="nx">JSONStream</span><span class="p">.</span><span class="nx">parse</span> <span class="p">[</span><span class="s">&#39;modules&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="s">&#39;methods&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">]</span>
+      <span class="k">else</span>
+        <span class="nv">parser = </span><span class="nx">JSONStream</span><span class="p">.</span><span class="nx">parse</span> <span class="p">[</span><span class="s">&#39;modules&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">true</span><span class="p">]</span>
+
+  <span class="k">else</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">error</span> <span class="s">&#39;Couldn\&#39;t figure out the arguments you gave.  Try running &quot;nappy --help&quot;.&#39;</span>
+    <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    
+
+
+
+<span class="nv">filter = </span><span class="nx">es</span><span class="p">.</span><span class="nx">through</span> <span class="nf">(obj) -&gt;</span>
+  <span class="k">if</span> <span class="o">not</span> <span class="nx">obj</span><span class="o">?</span><span class="p">.</span><span class="nx">desc</span><span class="o">?</span> <span class="o">or</span> <span class="o">not</span> <span class="nx">obj</span><span class="o">?</span><span class="p">.</span><span class="nx">name</span><span class="o">?</span> <span class="k">then</span> <span class="k">return</span>
+
+  <span class="k">if</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">name</span> <span class="o">is</span> <span class="nx">the_thing_in_the_module</span></pre></div></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-3" id="section-3">&#182;</a>
+</div>
+<p>spit out the thing's title</p></td><td class="code highlight"><div class="highlight"><pre>    <span class="k">if</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">textRaw</span><span class="o">?</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">colors</span><span class="p">.</span><span class="nx">header</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">textRaw</span><span class="p">)</span>
+
+    <span class="nx">@emit</span> <span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="nx">obj</span>
+
+
+
+<span class="nv">jquery_tree = </span><span class="nx">es</span><span class="p">.</span><span class="nx">through</span> <span class="nf">(jsonObject) -&gt;</span>
+
+  <span class="nv">jquery_tree_recurse = </span><span class="p">(</span><span class="nx">args</span><span class="p">)</span> <span class="o">=&gt;</span>
+    <span class="p">{</span><span class="nx">tagType</span><span class="p">,</span> <span class="nx">contents</span><span class="p">,</span> <span class="nx">jsonObject</span><span class="p">,</span> <span class="nx">code_block</span><span class="p">}</span> <span class="o">=</span> <span class="nx">args</span>
+    <span class="nv">tagType = </span><span class="nx">tagType</span><span class="o">?</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="o">?</span><span class="p">()</span>
+
+    <span class="nv">code_block = </span><span class="p">(</span><span class="nx">tagType</span> <span class="o">is</span> <span class="s">&#39;pre&#39;</span> <span class="o">or</span> <span class="nx">code_block</span> <span class="o">is</span> <span class="kc">yes</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="nx">node</span> <span class="k">in</span> <span class="nx">contents</span>
+      <span class="k">switch</span> <span class="nx">node</span><span class="p">.</span><span class="nx">nodeType</span></pre></div></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-4" id="section-4">&#182;</a>
+</div>
+<p>plain, unwrapped text</p></td><td class="code highlight"><div class="highlight"><pre>        <span class="k">when</span> <span class="mi">3</span>
+          <span class="nx">@emit</span> <span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="nv">tagType: </span><span class="nx">tagType</span><span class="p">,</span> <span class="nv">jsonObject: </span><span class="nx">jsonObject</span><span class="p">,</span> <span class="nv">node: </span><span class="nx">node</span><span class="p">,</span> <span class="nv">text: </span><span class="nx">$</span><span class="p">(</span><span class="nx">node</span><span class="p">).</span><span class="nx">text</span><span class="p">().</span><span class="nx">toString</span><span class="p">(),</span> <span class="nv">code_block: </span><span class="nx">code_block</span></pre></div></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-5" id="section-5">&#182;</a>
+</div>
+<p>an element</p></td><td class="code highlight"><div class="highlight"><pre>        <span class="k">when</span> <span class="mi">1</span>
+          <span class="nx">jquery_tree_recurse</span><span class="p">(</span><span class="nv">tagType: </span><span class="nx">node</span><span class="p">.</span><span class="nx">tagName</span><span class="p">,</span> <span class="nv">jsonObject: </span><span class="nx">jsonObject</span><span class="p">,</span> <span class="nv">contents: </span><span class="nx">$</span><span class="p">(</span><span class="nx">node</span><span class="p">).</span><span class="nx">contents</span><span class="p">().</span><span class="nx">toArray</span><span class="p">(),</span> <span class="nv">code_block: </span><span class="nx">code_block</span><span class="p">)</span></pre></div></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-6" id="section-6">&#182;</a>
+</div>
+<p>--- end jquery_tree_recurse --- #</p></td><td class="code highlight"><div class="highlight"><pre>  
+  <span class="nv">$contents = </span><span class="nx">$</span><span class="p">(</span><span class="nx">jsonObject</span><span class="p">.</span><span class="nx">desc</span><span class="p">)</span>
+  <span class="nx">jquery_tree_recurse</span> <span class="p">{</span><span class="nv">tagType: </span><span class="kc">null</span><span class="p">,</span> <span class="nv">jsonObject: </span><span class="nx">jsonObject</span><span class="p">,</span> <span class="nv">contents: </span><span class="nx">$contents</span><span class="p">,</span> <span class="nv">code_block: </span><span class="kc">no</span><span class="p">}</span>
+
+
+
+<span class="nv">whitespace_filter = </span><span class="nx">es</span><span class="p">.</span><span class="nx">through</span> <span class="nf">(args) -&gt;</span>
+  <span class="p">{</span><span class="nx">tagType</span><span class="p">,</span> <span class="nx">node</span><span class="p">,</span> <span class="nx">jsonObject</span><span class="p">,</span> <span class="nx">text</span><span class="p">,</span> <span class="nx">code_block</span><span class="p">}</span> <span class="o">=</span> <span class="nx">args</span>  
+
+  <span class="k">if</span> <span class="nx">code_block</span> <span class="o">is</span> <span class="kc">no</span></pre></div></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-7" id="section-7">&#182;</a>
+</div>
+<p>condense any multiple newlines into a single newline</p></td><td class="code highlight"><div class="highlight"><pre>    <span class="nv">args.text = </span><span class="nx">text</span><span class="p">.</span><span class="nx">replace</span> <span class="sr">/\n+/g</span><span class="p">,</span> <span class="s">&#39;\n&#39;</span>
+  <span class="k">else</span></pre></div></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-8" id="section-8">&#182;</a>
+</div>
+<p>ensure that code blocks end with only one blank line</p></td><td class="code highlight"><div class="highlight"><pre>    <span class="nv">args.text = </span><span class="nx">text</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\s+$/g</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">).</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/[ \t]*\n/g</span><span class="p">,</span> <span class="s">&#39;\n&#39;</span><span class="p">)</span>
+    <span class="nx">args</span><span class="p">.</span><span class="nx">text</span> <span class="o">+=</span> <span class="s">&#39;\n&#39;</span>
+
+  <span class="nx">@emit</span> <span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="nx">args</span>
+
+
+
+<span class="nv">coffee_maker = </span><span class="nx">es</span><span class="p">.</span><span class="nx">through</span> <span class="nf">(args) -&gt;</span>
+  <span class="p">{</span><span class="nx">tagType</span><span class="p">,</span> <span class="nx">node</span><span class="p">,</span> <span class="nx">jsonObject</span><span class="p">,</span> <span class="nx">text</span><span class="p">,</span> <span class="nx">code_block</span><span class="p">}</span> <span class="o">=</span> <span class="nx">args</span>
+
+  <span class="k">if</span> <span class="nx">code_block</span> <span class="o">is</span> <span class="kc">yes</span> <span class="o">and</span> <span class="nx">tagType</span><span class="o">?</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="o">?</span><span class="p">()</span> <span class="o">is</span> <span class="s">&#39;code&#39;</span> <span class="o">and</span> <span class="nx">argv</span><span class="p">.</span><span class="nx">coffee</span> <span class="o">is</span> <span class="kc">yes</span>
+    <span class="nv">js2coffee = </span><span class="nx">require</span> <span class="s">&#39;js2coffee&#39;</span>
+    <span class="k">try</span>
+      <span class="nv">text = </span><span class="nx">js2coffee</span><span class="p">.</span><span class="nx">build</span> <span class="nx">text</span>
+    <span class="k">catch</span> <span class="nx">exception</span>
+      <span class="k">if</span> <span class="nx">argv</span><span class="p">.</span><span class="nx">debug</span> <span class="o">is</span> <span class="kc">yes</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">colors</span><span class="p">.</span><span class="nx">err</span><span class="p">(</span><span class="s">&#39;[js2coffee] Exception:&#39;</span><span class="p">),</span> <span class="nx">exception</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">colors</span><span class="p">.</span><span class="nx">err</span><span class="p">(</span><span class="s">&#39;[js2coffee] Failed while converting code:&#39;</span><span class="p">),</span> <span class="nx">text</span>
+
+  <span class="nx">@emit</span> <span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="p">{</span> <span class="nv">tagType: </span><span class="nx">tagType</span><span class="p">,</span> <span class="nv">jsonObject: </span><span class="nx">jsonObject</span><span class="p">,</span> <span class="nv">node: </span><span class="nx">node</span><span class="p">,</span> <span class="nv">text: </span><span class="nx">text</span><span class="p">,</span> <span class="nv">code_block: </span><span class="nx">code_block</span> <span class="p">}</span>
+
+
+
+<span class="nv">colorizer = </span><span class="nx">es</span><span class="p">.</span><span class="nx">through</span> <span class="nf">(args) -&gt;</span>
+  <span class="p">{</span><span class="nx">tagType</span><span class="p">,</span> <span class="nx">node</span><span class="p">,</span> <span class="nx">jsonObject</span><span class="p">,</span> <span class="nx">text</span><span class="p">,</span> <span class="nx">code_block</span><span class="p">}</span> <span class="o">=</span> <span class="nx">args</span>
+
+  <span class="k">if</span> <span class="nx">tagType</span> <span class="o">is</span> <span class="s">&#39;code&#39;</span> <span class="o">and</span> <span class="nx">code_block</span> <span class="o">is</span> <span class="kc">yes</span>
+    <span class="nv">code = </span><span class="nx">text</span>
+            <span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s">&#39;\n&#39;</span><span class="p">)</span>
+            <span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nf">(line) -&gt;</span> <span class="k">return</span> <span class="nx">line</span><span class="p">.</span><span class="nx">replace</span> <span class="sr">/\s*$/</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="nv">longest_line = </span><span class="mi">0</span>
+    <span class="nv">longest_line = </span><span class="nx">line</span><span class="p">.</span><span class="nx">length</span> <span class="k">for</span> <span class="nx">line</span> <span class="k">in</span> <span class="nx">code</span> <span class="k">when</span> <span class="nx">line</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="nx">longest_line</span>
+
+    <span class="nv">padding_left = </span><span class="mi">2</span>
+    <span class="nv">padding_right = </span><span class="mi">2</span>
+
+    <span class="nx">code</span><span class="p">.</span><span class="nx">unshift</span> <span class="s">&#39;&#39;</span>
+    <span class="nv">matted = </span><span class="p">[]</span>
+    <span class="k">for</span> <span class="nx">line</span> <span class="k">in</span> <span class="nx">code</span>
+      <span class="nv">num_spaces_on_left  = </span><span class="nx">padding_left</span>
+      <span class="nv">num_spaces_on_right = </span><span class="nx">longest_line</span> <span class="o">-</span> <span class="nx">line</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="nx">padding_right</span>
+      <span class="nv">spaces_on_left  = </span><span class="nb">Array</span><span class="p">(</span><span class="nx">num_spaces_on_left</span>  <span class="o">+</span> <span class="mi">1</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+      <span class="nv">spaces_on_right = </span><span class="nb">Array</span><span class="p">(</span><span class="nx">num_spaces_on_right</span> <span class="o">+</span> <span class="mi">1</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+
+      <span class="nx">matted</span><span class="p">.</span><span class="nx">push</span> <span class="nx">colors</span><span class="p">.</span><span class="nx">code_block</span><span class="p">(</span><span class="s">&quot;</span><span class="si">#{</span><span class="nx">spaces_on_left</span><span class="si">}#{</span><span class="nx">line</span><span class="si">}#{</span><span class="nx">spaces_on_right</span><span class="si">}</span><span class="s">&quot;</span><span class="p">)</span>
+
+      <span class="nv">data = </span><span class="nx">matted</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s">&#39;\n&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;\n&#39;</span>
+
+  <span class="k">else</span> <span class="k">if</span> <span class="nx">tagType</span> <span class="o">is</span> <span class="s">&#39;code&#39;</span> <span class="o">and</span> <span class="nx">code_block</span> <span class="o">is</span> <span class="kc">no</span>
+    <span class="nv">data = </span><span class="nx">colors</span><span class="p">.</span><span class="nx">code</span><span class="p">(</span><span class="nx">text</span><span class="p">)</span>
+  <span class="k">else</span>
+    <span class="nv">data = </span><span class="nx">colors</span><span class="p">.</span><span class="nx">text</span><span class="p">(</span><span class="nx">text</span><span class="p">)</span>
+
+  <span class="nx">@emit</span> <span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="nx">data</span>
+  
+
+
+
+<span class="nv">obtain_data = </span><span class="nf">() -&gt;</span>
+  <span class="nv">cache_file = </span><span class="nx">path</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">HOME</span><span class="p">,</span> <span class="s">&#39;.nodejs-docs-cache&#39;</span><span class="p">,</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">the_module</span><span class="si">}</span><span class="s">.json&quot;</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="nx">argv</span><span class="p">[</span><span class="s">&#39;wipe-cache&#39;</span><span class="p">]</span> <span class="o">is</span> <span class="kc">yes</span> <span class="o">or</span> <span class="o">not</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">existsSync</span><span class="p">(</span><span class="nx">cache_file</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&#39;Cache is being re-filled.\n&#39;</span>
+
+    <span class="nx">mkdirp</span><span class="p">.</span><span class="nx">sync</span> <span class="nx">path</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">HOME</span><span class="p">,</span> <span class="s">&#39;.nodejs-docs-cache&#39;</span><span class="p">)</span>
+    <span class="nv">docs_url = </span><span class="s">&quot;http://nodejs.org/api/</span><span class="si">#{</span><span class="nx">the_module</span><span class="si">}</span><span class="s">.json&quot;</span>
+    <span class="nv">data_stream = </span><span class="nx">request</span><span class="p">(</span><span class="nx">docs_url</span><span class="p">)</span>
+    <span class="nx">data_stream</span><span class="p">.</span><span class="nx">pipe</span> <span class="nx">$f</span><span class="p">(</span><span class="nx">cache_file</span><span class="p">)</span>
+
+  <span class="k">else</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&#39;Using cached docs.\n&#39;</span>
+    <span class="nv">data_stream = </span><span class="nx">$f</span><span class="p">(</span><span class="nx">cache_file</span><span class="p">)</span></pre></div></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-9" id="section-9">&#182;</a>
+</div>
+<p>for some reason, the <code>filed</code> module's <code>pipe</code> function doesn't return the pipe's
+destination like most pipe functions.  so we'll just fix that...</p></td><td class="code highlight"><div class="highlight"><pre>    <span class="nv">old_pipe_fn = </span><span class="nx">data_stream</span><span class="p">.</span><span class="nx">pipe</span>
+    <span class="nv">data_stream.pipe = </span><span class="nf">(into) -&gt;</span>
+      <span class="nx">old_pipe_fn</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">data_stream</span><span class="p">,</span> <span class="nx">into</span><span class="p">)</span>
+      <span class="k">return</span> <span class="nx">into</span>
+  
+  <span class="k">if</span> <span class="nx">cmd</span> <span class="o">is</span> <span class="s">&#39;list&#39;</span>
+    <span class="nv">header_str = </span><span class="nx">the_module</span> <span class="o">+</span> <span class="p">(</span><span class="k">if</span> <span class="nx">the_thing_in_the_module</span><span class="o">?</span> <span class="k">then</span> <span class="s">&quot; -&gt; </span><span class="si">#{</span><span class="nx">the_thing_in_the_module</span><span class="si">}</span><span class="s">&quot;</span> <span class="k">else</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">colors</span><span class="p">.</span><span class="nx">header</span><span class="p">(</span><span class="nx">header_str</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="nx">data_stream</span>
+
+
+
+<span class="nv">summarizer = </span><span class="nx">es</span><span class="p">.</span><span class="nx">through</span> <span class="nf">(obj) -&gt;</span>
+  <span class="k">if</span> <span class="nx">obj</span><span class="o">?</span><span class="p">.</span><span class="nx">textRaw</span><span class="o">?</span>
+    <span class="nx">@emit</span> <span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">obj</span><span class="p">.</span><span class="nx">textRaw</span><span class="si">}</span><span class="s">\n&quot;</span>
+  <span class="k">else</span>
+    <span class="nx">@emit</span> <span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">obj</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="s">\n&quot;</span>
+
+
+
+
+<span class="nx">process</span><span class="p">.</span><span class="nx">stdout</span><span class="p">.</span><span class="nx">write</span> <span class="s">&#39;\n&#39;</span>
+
+<span class="k">switch</span> <span class="nx">cmd</span>
+  <span class="k">when</span> <span class="s">&#39;function&#39;</span><span class="p">,</span> <span class="s">&#39;class&#39;</span>
+    <span class="nx">obtain_data</span><span class="p">()</span>
+      <span class="p">.</span><span class="nx">pipe</span><span class="p">(</span><span class="nx">parser</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">pipe</span><span class="p">(</span><span class="nx">filter</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">pipe</span><span class="p">(</span><span class="nx">jquery_tree</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">pipe</span><span class="p">(</span><span class="nx">whitespace_filter</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">pipe</span><span class="p">(</span><span class="nx">coffee_maker</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">pipe</span><span class="p">(</span><span class="nx">colorizer</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">pipe</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">stdout</span><span class="p">)</span>
+
+  <span class="k">when</span> <span class="s">&#39;list&#39;</span>
+    <span class="nx">obtain_data</span><span class="p">()</span>
+      <span class="p">.</span><span class="nx">pipe</span><span class="p">(</span><span class="nx">parser</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">pipe</span><span class="p">(</span><span class="nx">summarizer</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">pipe</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">stdout</span><span class="p">)</span>
+
+<span class="nx">process</span><span class="p">.</span><span class="kc">on</span> <span class="s">&#39;exit&#39;</span><span class="p">,</span> <span class="o">-&gt;</span>
+  <span class="nx">process</span><span class="p">.</span><span class="nx">stdout</span><span class="p">.</span><span class="nx">write</span> <span class="nx">colors</span><span class="p">.</span><span class="nx">footer</span><span class="p">(</span><span class="nb">Array</span><span class="p">(</span><span class="mi">50</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="s">&#39;\n&#39;</span>
+</pre></div></td></tr></tbody></table></div></body></html>
