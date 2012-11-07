@@ -2,6 +2,7 @@
   "name": "nappy",
   "version": "0.1.0",
   "description": "node.js api docs from the command line",
+  "keywords": ["documentation", "api", "node", "language", "docs", "cli", "terminal"],
   "main": "lib/nappy.js",
   "dependencies": {
     "JSONStream": "0.4.x",
