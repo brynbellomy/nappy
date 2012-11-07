@@ -30,7 +30,7 @@
     err: clc.red
   };
 
-  argv = require('optimist').alias('c', 'coffee').describe('c', 'Output code blocks as coffeescript.')["default"]('c', false).boolean('c').alias('w', 'wipe-cache').describe('w', 'Wipe the locally-cached version of the API docs and re-download.')["default"]('w', false).boolean('w').alias('d', 'debug').describe('d', 'Display debug output.')["default"]('d', false).boolean('d').demand(2).argv;
+  argv = require('optimist').alias('c', 'coffee').describe('c', 'Output code blocks as coffeescript.')["default"]('c', false).boolean('c').alias('w', 'wipe-cache').describe('w', 'Wipe the locally-cached version of the API docs and re-download.')["default"]('w', false).boolean('w').alias('d', 'debug').describe('d', 'Display debug output.')["default"]('d', false).boolean('d').usage('Usage:\n   $ nappy [options] <command> <thing to lookup>\n\nExample:\n   $ nappy -cw func fs.readFile\n\nCommands:\n   function (aliases: f, func, m, method)\n   class    (aliases: c)\n   ls       (aliases: l, list)').demand(2).argv;
 
   cmd = argv._[0];
 
