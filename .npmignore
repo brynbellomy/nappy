@@ -1,0 +1,7 @@
+node_modules
+.DS_Store
+*.sublime-workspace
+Rakefile
+.git
+otis.config.js
+*.png
