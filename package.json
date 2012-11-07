@@ -1,6 +1,6 @@
 {
   "name": "nappy",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "node.js api docs from the command line",
   "main": "lib/nappy.js",
   "dependencies": {
