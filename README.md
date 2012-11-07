@@ -4,6 +4,13 @@
 
 
 
+# installing
+
+```sh
+$ npm install -g nappy
+```
+
+
 # basic usage
 
 ```sh
