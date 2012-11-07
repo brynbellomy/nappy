@@ -4,10 +4,6 @@
 # node.js api querying from the terminal  
 # bryn austin bellomy (bryn.bellomy@gmail.com)
 #
-# @@TODO:
-# - remove whitespace: something like - chunk.split("\n").filter((part) -> if part.trim().length <= 0 return false else return true).join('\n')
-# - make it possible to query other types of things (like classes ('readable stream') or a list of module contents ('fs'))
-#
 
 
 JSONStream = require 'JSONStream'
