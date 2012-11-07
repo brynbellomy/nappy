@@ -1,9 +1,9 @@
 {
   "name": "nappy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "node.js api docs from the command line",
   "keywords": ["documentation", "api", "node", "language", "docs", "cli", "terminal"],
-  "main": "lib/nappy.js",
+  "main": "nappy",
   "dependencies": {
     "JSONStream": "0.4.x",
     "event-stream": "3.0.x",
@@ -18,7 +18,7 @@
   },
   "devDependencies": {},
   "bin": {
-    "nappy": "./bin/nappy"
+    "nappy": "./nappy"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
